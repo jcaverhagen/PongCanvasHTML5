@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang ="nl">
+<head>
+	<title>Test</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+</head>
+<body>
+	<div class="container-fluid">
+		<canvas id="myCanvas" width="1200px" height="600px"  style="border:1px solid #000000; display: block; margin: 0px auto;"></canvas>
+	</div>
+	<script>
+		var upArrow = 38;
+		var downArrow = 40;
+		var wKey = 87;
+		var sKey = 83;
+		var xLeftBat;
+		var yLeftBat;
+		var xRightBat;
+		var yRightBat;
+		var ballSize = 3;
+		var xBall;
+		var yBall;
+		var ballDirectionX;
+		var ballDirectionY;
+		var widthBat = 10;
+		var heightBat = 100;
+		var batStepSize = 5;
+		var scorePlayer1 = 0;
+		var scorePlayer2 = 0;
+		var speed = 6;
+		
+		function init(canvas) {
+			xLeftBat = 20;
+			yLeftBat = (canvas.height / 2) - (heightBat / 2);
+			
+			xRightBat = (canvas.width - 20);
+			yRightBat = (canvas.height / 2) - (heightBat / 2);
+			
+			resetBall(canvas);
+		}
+		
+		function resetBall(canvas) {
+			xBall = canvas.width / 2;
+			yBall = canvas.height / 2;
+			ballDirectionX = (Math.random() * 2) -1;
+			ballDirectionY = (Math.random() * 2) -1;
+		}
+		
+		function drawLeftBat(canvas, ctx) {
+			ctx.beginPath();
+			if(yLeftBat < 0) { yLeftBat = 0; }
+			else if((yLeftBat + heightBat) > canvas.height) { yLeftBat = canvas.height - heightBat; }
+			ctx.rect(xLeftBat, yLeftBat, widthBat, heightBat);
+			ctx.fillStyle = "#000";
+			ctx.fill();
+		}
+		
+		function drawRightBat(canvas, ctx) {
+			ctx.beginPath();
+			if(yRightBat < 0) { yRightBat = 0; }
+			else if((yRightBat + heightBat) > canvas.height) { yRightBat = canvas.height - heightBat; }
+			ctx.rect(xRightBat, yRightBat, widthBat, heightBat);
+			ctx.fillStyle = "#000";
+			ctx.fill();
+		}
+		
+		function drawBall(canvas, ctx) {
+			ctx.beginPath();
+			ctx.arc(xBall, yBall, ballSize, 0, 2 * Math.PI);
+			ctx.fillStyle = "#000";
+			ctx.fill();
+		}
+		
+		function drawScore(canvas, ctx) {
+			ctx.beginPath();
+			ctx.font = "20px Arial";
+			ctx.fillStyle = "grey";
+			ctx.textAlign = "center";
+			ctx.fillText(scorePlayer1 + " - " + scorePlayer2, (canvas.width / 2), 40);
+		}
+		
+		function ballCollisionCheck(canvas) {
+			//left bat collision
+			if((yBall - ballSize) >= yLeftBat && (yBall + ballSize) <= (yLeftBat + heightBat) && (xLeftBat + widthBat) >= xBall - ballSize) {
+				ballDirectionX = -ballDirectionX;
+			}
+			
+			//right bat collision
+			if((yBall - ballSize) >= yRightBat && (yBall + ballSize) <= (yRightBat + heightBat) && (xRightBat + widthBat) >= xBall - ballSize) {
+				ballDirectionX = -ballDirectionX;
+			}
+
+			//field collision 
+			//player left collision
+			if((xBall - ballSize) < 0) { ballDirectionX = -ballDirectionX; scorePlayer2++; }
+			
+			//player right collision
+			if((xBall + ballSize) > canvas.width) { ballDirectionX = -ballDirectionX; scorePlayer1++; }
+			
+			//bottom/top collision
+			if((yBall - ballSize) < 0 || (yBall + ballSize) > canvas.height) { ballDirectionY = -ballDirectionY; }
+		}
+		
+		function animate(canvas, ctx) {
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			
+			ballCollisionCheck(canvas);
+			xBall += (ballDirectionX * speed);
+			yBall += (ballDirectionY * speed);
+			
+			drawLeftBat(canvas, ctx);
+			drawRightBat(canvas, ctx);
+			drawBall(canvas, ctx);
+			drawScore(canvas, ctx);
+			
+			setTimeout(function() {
+				var startTime = (new Date()).getTime();
+				animate(canvas, ctx);
+			}, 10);
+		}
+		
+		$(document).keydown(function(e) {
+			switch(e.keyCode) {
+				case upArrow :
+					yRightBat -= batStepSize;
+					break;
+				case downArrow : 
+					yRightBat += batStepSize;
+					break;
+				case wKey :
+					yLeftBat -= batStepSize;
+					break;
+				case sKey :
+					yLeftBat += batStepSize;
+					break;
+			}
+		});
+		
+		$(document).ready(function() {
+			var canvas = document.getElementById("myCanvas");
+			var ctx = canvas.getContext("2d");
+			init(canvas);
+			animate(canvas, ctx);
+		});
+	</script>
+</body>
+</html>
